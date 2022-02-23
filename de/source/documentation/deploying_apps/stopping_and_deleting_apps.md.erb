@@ -1,0 +1,79 @@
+## Apps stoppen und starten
+
+Führen Sie Folgendes in der Befehlszeile aus, um Ihre App vorübergehend zu stoppen und Speicherplatz von Ihrem [Kontingent freizugeben](/managing_apps.html#quotas) :
+
+```
+cf stop APP_NAME
+```
+
+Benutzer, die die URL Ihrer App besuchen, erhalten den Fehler:
+
+```
+404 Not Found: Requested route ('APP_NAME.APP_DOMAIN') does not exist.
+```
+
+Datenbanken und andere bereitgestellte Dienste werden weiterhin ausgeführt, und GOV.UK PaaS stellt Ihnen alle kostenpflichtigen Pläne oder Dienste in Rechnung.
+
+Führen Sie Folgendes aus, um eine angehaltene App neu zu starten:
+
+```
+cf start APP_NAME
+```
+
+## Apps löschen
+
+&lt;%= warning_text('Das Löschen einer App kann nicht rückgängig gemacht werden.') %&gt;
+
+Sie sollten `cf target` ausführen, um zu überprüfen, in welcher [Organisation](/orgs_spaces_users.html#organisations) und in welchem [Bereich](/orgs_spaces_users.html#spaces) Sie sich befinden, bevor Sie eine App löschen.
+
+Führen Sie Folgendes aus, um eine App zu löschen:
+
+```
+cf delete APPNAME
+```
+
+### App-Routen löschen
+
+Führen Sie Folgendes aus, um eine App und die [Routen](https://docs.cloudfoundry.org/devguide/deploy-apps/routes-domains.html#routes) dieser App gleichzeitig zu löschen:
+
+```
+cf delete -r APPNAME
+```
+
+Sie können die Routen einer App separat löschen.
+
+1. Führen Sie `cf routes` aus, um eine Liste aller aktiven Routen im aktuellen Bereich zu erhalten. Dieser Befehl listet auch Informationen zu den Routen auf, einschließlich Hostname und [App-Domain](/orgs_spaces_users.html#regions) .
+
+2. Führen Sie Folgendes aus, um die Routen der App zu löschen:
+
+    ```
+    cf delete-route DOMAIN_NAME --hostname HOSTNAME
+    ```
+
+### Löschen einer Dienstinstanz
+
+Sie müssen eine Dienstinstanz von allen Apps trennen, an die sie gebunden ist, bevor Sie diese Dienstinstanz löschen können. Notiz:
+
+- Sie müssen die Dienstinstanzen einer App nicht löschen, bevor Sie diese App löschen können
+- Eine Dienstinstanz kann an mehr als eine App gebunden werden
+
+1. Führen Sie `cf services` aus, um alle Dienstinstanzen in Ihrem Zielbereich anzuzeigen. Beispielausgabe:
+
+    ```
+    name      service    plan    bound apps    last operation
+    mystuff   postgres   small   my-app        create succeeded
+    mydb      mysql      large   not-my-app    create succeeded
+    ```
+
+2. Führen Sie Folgendes aus, um eine Dienstinstanz zu entbinden:
+
+    ```
+    cf unbind-service APP_NAME SERVICE_NAME
+    ```
+
+    wo:
+
+    - `APP_NAME` ist der Name einer bereitgestellten Instanz Ihrer App, genau wie in Ihrem Manifest oder Push-Befehl angegeben
+    - `SERVICE_NAME` ist ein eindeutiger beschreibender Name für diese Dienstinstanz
+
+3. Führen Sie `cf delete-service SERVICE_NAME` aus, um diese Dienstinstanz zu löschen.
